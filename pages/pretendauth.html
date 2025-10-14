@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div>
+      <p class="forEtsy">
+        This is a placeholder for the Etsy OAuth login page for demonstration
+        purposes.<br />
+        Once API access is granted, this page will be deleted.<br />
+        Currently this button does nothing but redirect the user back to the
+        landing page with a 'code' parameter in the url to simulate successful
+        OAuth.
+      </p>
+      <button id="authButton"><p class="buttonText">Authorize</p></button>
+    </div>
+    <script>
+      const code = '1234'
+      document.getElementById('authButton').addEventListener('click', () => {
+        const params = new URLSearchParams({
+          code: code
+        })
+        const receivedParams = new URLSearchParams(window.location.search)
+        const redirect = receivedParams.get('redirect_uri')
+        window.location.href = `https://depaulcommsresearch.pythonanywhere.com/?${params.toString()}`
+      })
+    </script>
+  </body>
+</html>

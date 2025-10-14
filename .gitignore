@@ -1,0 +1,7 @@
+*.png
+.venv
+*.txt
+*example.py
+.*
+!.gitignore
+test.html
