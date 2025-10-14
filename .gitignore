@@ -5,3 +5,5 @@
 .*
 !.gitignore
 test.html
+logs
+*.toml
