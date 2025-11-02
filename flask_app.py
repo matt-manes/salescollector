@@ -1,6 +1,13 @@
 from typing import cast
 
 import dotenv
+
+# etsy_python doesn't have any typing stub files
+# and the receipt import is so long that the formatter
+# keeps moving the ignore comment to a different line
+# preventing type checker suppression.
+# This ugliness ain't my fault
+import etsy_python.v3.resources.ReceiptTransactions as rt  # type: ignore
 from etsy_python.v3.auth.OAuth import EtsyOAuth  # type: ignore
 from etsy_python.v3.resources import User  # type: ignore
 from etsy_python.v3.resources.Receipt import ReceiptResource  # type: ignore
@@ -30,6 +37,10 @@ def pull_data(code: str, state: str):
     # this ugliness ain't my fault
     shop_id: str = cast(str, user.get_me().message["shop_id"])  # type: ignore
     data = ReceiptResource(client).get_shop_receipts(int(shop_id))
+    print(data)
+    data = rt.ReceiptTransactionsResource(client).get_shop_receipt_transaction_by_shop(
+        int(shop_id)
+    )
     print(data)
     # TODO save data to database
 
