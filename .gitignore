@@ -9,3 +9,4 @@ logs
 *.toml
 __pycache__
 flask_session
+*.sqlite3
