@@ -2,79 +2,79 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="stylesheet" href="static/style.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="style.css" />
   </head>
-  <html>
-    <body>
-      <div>
-        <h1>DePaul Communications Research</h1>
-        <h2>Participant data collection portal</h2>
-        <p>irb number: 2024-1443</p>
-        <p>
-          The purpose of this study is to collect and analyze participant's
-          sales data.<br />
-          We will only collect the number of sales and total dollar amount from
-          sales.<br />
-          We will not store usernames or any PII (personally identifiable
-          information).<br />
-          This app is in no way affiliated with Etsy.
-        </p>
-        <p id="buttonInfo">
-          By clicking the button below, you will be prompted to login to Etsy
-          and grant authorization to this app to access your sales data.
-        </p>
-        <button id="connectButton">
-          <p class="buttonText">Connect to your Etsy account</p>
-        </button>
-        <p id="status"></p>
-        <p id="info" class="forEtsy">
-          (Info in orange boxes is for app review purposes and will be removed
-          upon API access)<br />
-          Currently this button directs to a placeholder OAuth page on this
-          domain.<br />
-          Once Etsy API access is granted, it will instead direct the user to
-          Etsy's OAuth login page so the particpant can authorize the connection
-          to their account.
-        </p>
-        <p id="secondaryInfo" style="display: none" class="forEtsy">
-          At this point, the auth code will be exchanged for the auth token on
-          the server side and the sales data will be collected.
-          <br />
-          Because this is a one-time collection, we will not store any tokens
-          beyond the life of the API call to obtain sales history.
-        </p>
-      </div>
-      <script>
-        document
-          .getElementById('connectButton')
-          .addEventListener('click', () => {
-            // const authUrl = `https://www.etsy.com/oauth/connect?${params.toString()}`
-            const params = new URLSearchParams({
-              clientId: '1234',
-              redirectUri: 'https://depaulcommsresearch.pythonanywhere.com',
-              response_type: 'code',
-              scope: 'sales_scope_placeholder'
-            })
-            const authUrl = `https://depaulcommsresearch.pythonanywhere.com/pretendauth?${params.toString()}`
-            window.location.href = authUrl
-          })
+  <body>
+    <div>
+      <h1>DePaul Communications Research</h1>
+      <h2>Participant data collection portal</h2>
+      <p>irb number: 2024-1443</p>
+      <p>
+        The purpose of this study is to collect and analyze participant's sales
+        data.<br />
+        We will only collect the number of sales and total dollar amount from
+        sales.<br />
+        We will not store usernames or any PII (personally identifiable
+        information).<br />
+        This app is in no way affiliated with Etsy.
+      </p>
+      <p id="buttonInfo">
+        By clicking the button below, you will be prompted to login to Etsy and
+        grant authorization to this app to access your sales data.
+      </p>
+      <button id="connectButton">
+        <p class="buttonText">Connect to your Etsy account</p>
+      </button>
+      <p id="status"></p>
+      <p id="info" class="forEtsy">
+        (Info in orange boxes is for app review purposes and will be removed
+        upon API access)<br />
+        Currently this button directs to a placeholder OAuth page on this
+        domain.<br />
+        Once Etsy API access is granted, it will instead direct the user to
+        Etsy's OAuth login page so the particpant can authorize the connection
+        to their account.
+      </p>
+      <p id="secondaryInfo" style="display: none" class="forEtsy">
+        At this point, the auth code will be exchanged for the auth token on the
+        server side and the sales data will be collected.
+        <br />
+        Because this is a one-time collection, we will not store any tokens
+        beyond the life of the API call to obtain sales history.
+      </p>
+    </div>
+    <script>
+      document.getElementById('connectButton').addEventListener('click', () => {
+        // const authUrl = `https://www.etsy.com/oauth/connect?${params.toString()}`
+        // const params = new URLSearchParams({
+        //   clientId: '1234',
+        //   redirectUri: '/',
+        //   response_type: 'code',
+        //   scope: 'sales_scope_placeholder'
+        // })
+        // const authUrl = `/pretendauth?${params.toString()}`
+        // window.location.href = authUrl
+        fetch('/authurl')
+          .then(r => r.text())
+          //.then(s => (window.location.href = 'http://127.0.0.1:5000' + s))
+          .then(s => (window.location.href = s))
+      })
 
-        // Get code from url param (should be there when this is redirected to)
-        const urlParams = new URLSearchParams(window.location.search)
-        const code = urlParams.get('code')
-        // Triggers if redirected back after doing oauth
-        if (code) {
-          // send code to your backend to handle token exchange
-          document.getElementById('connectButton').style.display = 'none'
-          document.getElementById('info').style.display = 'none'
-          document.getElementById('buttonInfo').style.display = 'none'
-          document.getElementById('secondaryInfo').style.display = 'block'
-          document.getElementById('status').innerHTML =
-            'Thanks you for your participation!'
-          // You would POST the code to your server here to get an access token
-        }
-      </script>
-    </body>
-  </html>
+      // Get code from url param (should be there when this is redirected to)
+      const urlParams = new URLSearchParams(window.location.search)
+      const code = urlParams.get('code')
+      // Triggers if redirected back after doing oauth
+      if (code) {
+        // send code to your backend to handle token exchange
+        document.getElementById('connectButton').style.display = 'none'
+        document.getElementById('info').style.display = 'none'
+        document.getElementById('buttonInfo').style.display = 'none'
+        document.getElementById('secondaryInfo').style.display = 'block'
+        document.getElementById('status').innerHTML =
+          'Thanks you for your participation!'
+        // You would POST the code to your server here to get an access token
+      }
+    </script>
+  </body>
 </html>
