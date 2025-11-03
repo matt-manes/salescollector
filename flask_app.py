@@ -58,7 +58,7 @@ def landing():
 
 @app.route("/authurl")
 def get_etsy_auth_url():
-    oauth: EtsyOAuth = etsy.get_etsy_oauth()
+    oauth: EtsyOAuth = etsy.get_oauth()
     auth_url, state = oauth.get_auth_code()
     etsy.save_oauth(state, oauth.code_verifier)
     return auth_url
