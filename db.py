@@ -1,6 +1,5 @@
 from datetime import datetime
 from typing import Any
-from uuid import uuid4
 
 from databased import Databased, Rows
 
@@ -10,13 +9,6 @@ from exceptions import MissingSessionDataException
 class SCDatabased(Databased):
     def __init__(self) -> None:
         super().__init__("sc.sqlite3")
-
-    def get_state(self) -> str:
-        state: str = str(hash(uuid4()))
-        while self.state_exists(state):
-            state = str(hash(uuid4()))
-        self.insert("states", ["state", "date_added"], [[state, datetime.now()]])
-        return state
 
     def state_exists(self, state: str) -> bool:
         return self.count("states", where=f"state = '{state}'") > 0

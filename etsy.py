@@ -57,11 +57,6 @@ def get_authenticated_client(code: str, state: str) -> EtsyClient:
     return get_client(token_data)
 
 
-def get_state() -> str:
-    with SCDatabased() as db:
-        return db.get_state()
-
-
 def state_exists(state: str) -> bool:
     with SCDatabased() as db:
         return db.state_exists(state)
