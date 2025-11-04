@@ -1,17 +1,7 @@
-from typing import cast
-
 import dotenv
 
 # etsy_python doesn't have any typing stub files
-# and the receipt import is so long that the formatter
-# keeps moving the ignore comment to a different line
-# preventing type checker suppression.
-# This ugliness ain't my fault
-import etsy_python.v3.resources.ReceiptTransactions as rt  # type: ignore
 from etsy_python.v3.auth.OAuth import EtsyOAuth  # type: ignore
-from etsy_python.v3.resources import User  # type: ignore
-from etsy_python.v3.resources.Receipt import ReceiptResource  # type: ignore
-from etsy_python.v3.resources.Session import EtsyClient  # type: ignore
 from flask import Flask, Response, make_response, request
 from pathier import Pathier
 
@@ -19,6 +9,11 @@ import etsy
 import exceptions
 
 app = Flask(__name__)
+
+# TODO Add "The term 'Etsy' is a trademark of Etsy, Inc. This application uses the Etsy API but is not endorsed or certified by Etsy, Inc."
+# TODO to home page
+
+# TODO Add route that triggers csv dump
 
 if not Pathier(".env").exists():
     raise exceptions.MissingEnvException("Could not find '.env' file.")
@@ -30,21 +25,6 @@ def load_content(filename: str) -> str:
     return (pages_dir / filename).read_text(encoding="utf-8")
 
 
-def pull_data(code: str, state: str):
-    client: EtsyClient = etsy.get_authenticated_client(code, state)
-    user = User.UserResource(client)
-    # etsy_python lib has type errors
-    # this ugliness ain't my fault
-    shop_id: str = cast(str, user.get_me().message["shop_id"])  # type: ignore
-    data = ReceiptResource(client).get_shop_receipts(int(shop_id))
-    print(data)
-    data = rt.ReceiptTransactionsResource(client).get_shop_receipt_transaction_by_shop(
-        int(shop_id)
-    )
-    print(data)
-    # TODO save data to database
-
-
 @app.route("/")
 def landing():
     response: Response = make_response(load_content("landing.html"))
@@ -52,13 +32,19 @@ def landing():
     state: str = request.args.get("state", "")
     print(state)
     if code is not None and etsy.state_exists(state):
-        pull_data(code, state)
+        try:
+            etsy.pull_data(code, state)
+        except Exception:
+            etsy.get_logger().exception("Error pulling shop data from Etsy\n")
+            # TODO return different content with error message
     return response
 
 
 @app.route("/authurl")
 def get_etsy_auth_url():
     oauth: EtsyOAuth = etsy.get_oauth()
+    auth_url: str
+    state: str
     auth_url, state = oauth.get_auth_code()
     etsy.save_oauth(state, oauth.code_verifier)
     return auth_url
