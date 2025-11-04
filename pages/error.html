@@ -17,24 +17,13 @@
         sales.<br />
         We do not store any PII (personally identifiable information).<br />
       </p>
-      <p id="buttonInfo">
-        By clicking the button below, you will be prompted to login to Etsy and
-        grant authorization to this app to access your sales data.
+      <p id="status" class="status">
+        There was an error retrieving your sales data.
       </p>
-      <button id="connectButton">
-        <p class="buttonText">Authenticate with Etsy</p>
-      </button>
     </div>
     <div>
       The term 'Etsy' is a trademark of Etsy, Inc. This application uses the
       Etsy API but is not endorsed or certified by Etsy, Inc.
     </div>
-    <script>
-      document.getElementById('connectButton').addEventListener('click', () => {
-        fetch('/authurl')
-          .then(r => r.text())
-          .then(s => (window.location.href = s))
-      })
-    </script>
   </body>
 </html>

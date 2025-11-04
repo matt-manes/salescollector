@@ -13,7 +13,14 @@ div {
   margin: auto;
   padding: 10px;
   text-align: center;
-  border: 3px solid #f1641e;
+  color: #f1641e;
+}
+.status {
+  margin: auto;
+  padding: 10px;
+  text-align: center;
+  border: 3px solid white;
+  width: fit-content;
 }
 button {
   color: white;
