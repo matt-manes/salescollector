@@ -13,9 +13,9 @@ app = Flask(__name__)
 
 # TODO Add route that triggers csv dump
 
-if not Pathier(".env").exists():
+if not (Pathier(__file__).parent / ".env").exists():
     raise exceptions.MissingEnvException("Could not find '.env' file.")
-dotenv.load_dotenv(".env")
+dotenv.load_dotenv(Pathier(__file__).parent / ".env")
 
 
 def load_content(filename: str) -> str:
