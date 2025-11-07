@@ -2,13 +2,14 @@ from datetime import datetime
 from typing import Any
 
 from databased import Databased, Rows
+from pathier import Pathier
 
 from exceptions import MissingSessionDataException
 
 
 class SCDatabased(Databased):
     def __init__(self) -> None:
-        super().__init__("sc.sqlite3")
+        super().__init__(Pathier(__file__).parent / "sc.sqlite3")
 
     def state_exists(self, state: str) -> bool:
         return self.count("states", where=f"state = '{state}'") > 0
