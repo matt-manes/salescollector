@@ -60,6 +60,9 @@ class DataWriter:
     def write_to_csv() -> Pathier:
         data: list[dict[str, Any]] = DataWriter.get_data()
         output_path: Pathier = Pathier(__file__).parent / "etsy-sales.csv"
+        if not data:
+            output_path.touch()
+            return output_path
         with output_path.open("w", newline="", encoding="utf-8") as file:
             writer: csv.DictWriter[str] = csv.DictWriter(
                 file, fieldnames=data[0].keys()
