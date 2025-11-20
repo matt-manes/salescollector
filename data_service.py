@@ -1,4 +1,5 @@
 import csv
+from datetime import datetime
 from typing import Any
 
 from pathier import Pathier
@@ -6,7 +7,7 @@ from pathier import Pathier
 from db import Rows, SCDatabased
 
 
-class DataWriter:
+class EtsyDataService:
 
     @staticmethod
     def get_date_patterns() -> list[str]:
@@ -34,16 +35,49 @@ class DataWriter:
         return f"{month.removeprefix('0')}/{year[2:]}"
 
     @staticmethod
-    def get_data() -> list[dict[str, Any]]:
+    def _prep_transaction_data(
+        shop_id: str, data: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
+        transactions: list[dict[str, Any]] = []
+        for receipt in data:
+            if receipt["seller_user_id"] == shop_id:
+                for transaction in receipt["transactions"]:
+                    prepped: dict[str, Any] = {}
+                    prepped["receipt_id"] = receipt["receipt_id"]
+                    prepped["sale_date"] = datetime.fromtimestamp(
+                        receipt["created_timestamp"]
+                    )
+                    prepped["transaction_id"] = transaction["transaction_id"]
+                    prepped["title"] = transaction["title"]
+                    prepped["quantity"] = transaction["quantity"]
+                    prepped["listing_id"] = transaction["listing_id"]
+                    prepped["product_id"] = transaction["product_id"]
+                    prepped["unit_price"] = float(transaction["price"]["amount"]) / (
+                        1.0
+                        if transaction["price"]["divisor"] == 0
+                        else transaction["price"]["divisor"]
+                    )
+                    prepped["total_price"] = prepped["unit_price"] * prepped["quantity"]
+                    transactions.append(prepped)
+        return transactions
+
+    @staticmethod
+    def save_data(shop_id: str, data: list[dict[str, Any]]) -> None:
+        data = EtsyDataService._prep_transaction_data(shop_id, data)
+        with SCDatabased() as db:
+            db.save_etsy_data(shop_id, data)
+
+    @staticmethod
+    def get_condensed_data() -> list[dict[str, Any]]:
         data: list[dict[str, Any]] = []
-        date_patterns: list[str] = DataWriter.get_date_patterns()
+        date_patterns: list[str] = EtsyDataService.get_date_patterns()
         with SCDatabased() as db:
             shops: Rows = db.select("shops", ["shop_id"])
             for i, shop in enumerate(shops, 1):
                 for date in date_patterns:
                     row: dict[str, Any] = {}
                     row["participant id"] = f"Artist_{i}"
-                    row["date"] = DataWriter.convert_date(date)
+                    row["date"] = EtsyDataService.convert_date(date)
                     sales: Rows = db.select(
                         "sales",
                         ["SUM(total_price) AS revenue", "SUM(quantity) AS sales"],
@@ -57,8 +91,8 @@ class DataWriter:
         return data
 
     @staticmethod
-    def write_to_csv() -> Pathier:
-        data: list[dict[str, Any]] = DataWriter.get_data()
+    def write_data_to_csv() -> Pathier:
+        data: list[dict[str, Any]] = EtsyDataService.get_condensed_data()
         output_path: Pathier = Pathier(__file__).parent / "etsy-sales.csv"
         if not data:
             output_path.touch()

@@ -5,7 +5,7 @@ from pathier import Pathier
 
 import etsy
 import exceptions
-from data_writer import DataWriter
+from data_service import EtsyDataService
 from etsy import AuthenticatedClient, OAuthProvider
 
 app = Flask(__name__)
@@ -51,4 +51,4 @@ def get_etsy_auth_url() -> str:
 
 @app.route("/salesdata")
 def get_csv_data() -> Response:
-    return send_file(DataWriter.write_to_csv())
+    return send_file(EtsyDataService.write_data_to_csv())

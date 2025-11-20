@@ -15,13 +15,12 @@ from pathier import Pathier
 from typing_extensions import Self
 
 import exceptions
+from data_service import EtsyDataService
 from db import SCDatabased
-
-root = Pathier(__file__).parent
 
 
 def get_logger() -> loggi.Logger:
-    return loggi.getLogger("etsy", root / "logs")
+    return loggi.getLogger("etsy", Pathier(__file__).parent / "logs")
 
 
 def log_and_raise_api_error(message: str) -> exceptions.APIException:
@@ -135,34 +134,8 @@ class AuthenticatedClient:
                 offset += limit
         return results
 
-    def prep_transaction_data(self, data: list[dict[str, Any]]) -> list[dict[str, Any]]:
-        transactions: list[dict[str, Any]] = []
-        for receipt in data:
-            if receipt["seller_user_id"] == self.shop_id:
-                for transaction in receipt["transactions"]:
-                    prepped: dict[str, Any] = {}
-                    prepped["receipt_id"] = receipt["receipt_id"]
-                    prepped["sale_date"] = datetime.fromtimestamp(
-                        receipt["created_timestamp"]
-                    )
-                    prepped["transaction_id"] = transaction["transaction_id"]
-                    prepped["title"] = transaction["title"]
-                    prepped["quantity"] = transaction["quantity"]
-                    prepped["listing_id"] = transaction["listing_id"]
-                    prepped["product_id"] = transaction["product_id"]
-                    prepped["unit_price"] = float(transaction["price"]["amount"]) / (
-                        1.0
-                        if transaction["price"]["divisor"] == 0
-                        else transaction["price"]["divisor"]
-                    )
-                    prepped["total_price"] = prepped["unit_price"] * prepped["quantity"]
-                    transactions.append(prepped)
-        return transactions
-
     def pull_data(self) -> None:
         get_logger().info(f"Pulling sales data for shop '{self.shop_id}'.")
         data: list[dict[str, Any]] = self.get_sales_data()
-        data = self.prep_transaction_data(data)
-        with SCDatabased() as db:
-            db.save_etsy_data(self.shop_id, data)
+        EtsyDataService.save_data(self.shop_id, data)
         get_logger().info(f"Retrieved {len(data)} records for shop '{self.shop_id}'.")
