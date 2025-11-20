@@ -12,8 +12,9 @@ CREATE TABLE
         transaction_id INTEGER,
         shop_id REFERENCES shops (shop_id) ON DELETE RESTRICT,
         title TEXT,
-        price REAL,
+        unit_price REAL,
         quantity INTEGER,
+        total_price REAL,
         sale_date TIMESTAMP,
         date_added TIMESTAMP
     );

@@ -116,7 +116,11 @@ class AuthenticatedClient:
                 response: Response = cast(
                     Response,
                     receipts.get_shop_receipts(
-                        int(self.shop_id), limit=limit, offset=offset
+                        int(self.shop_id),
+                        limit=limit,
+                        offset=offset,
+                        was_paid=True,
+                        was_canceled=False,
                     ),
                 )
             except RequestException as e:
@@ -146,11 +150,12 @@ class AuthenticatedClient:
                     prepped["quantity"] = transaction["quantity"]
                     prepped["listing_id"] = transaction["listing_id"]
                     prepped["product_id"] = transaction["product_id"]
-                    prepped["price"] = float(transaction["price"]["amount"]) / (
+                    prepped["unit_price"] = float(transaction["price"]["amount"]) / (
                         1.0
                         if transaction["price"]["divisor"] == 0
                         else transaction["price"]["divisor"]
                     )
+                    prepped["total_price"] = prepped["unit_price"] * prepped["quantity"]
                     transactions.append(prepped)
         return transactions
 
