@@ -2,13 +2,11 @@ from pathier import Pathier
 
 from db import SCDatabased
 
-root = Pathier(__file__).parent
 
-
-def main():
-    """ """
+def main() -> None:
+    """Initialize the database using the 'schema.sql' file."""
     with SCDatabased() as db:
-        db.execute_script(root / "schema.sql")
+        db.execute_script(Pathier(__file__).parent / "schema.sql")
 
 
 if __name__ == "__main__":

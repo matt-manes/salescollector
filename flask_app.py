@@ -16,16 +16,43 @@ dotenv.load_dotenv(Pathier(__file__).parent / ".env")
 
 
 def load_content(filename: str) -> str:
+    """
+    Read content from the given file located in the 'pages' directory.
+
+    Parameters
+    ----------
+    filename : str
+        The file name.
+
+    Returns
+    -------
+    str
+        The file content.
+    """
     pages_dir: Pathier = Pathier(__file__).parent / "pages"
     return (pages_dir / filename).read_text(encoding="utf-8")
 
 
 def get_logger() -> loggi.Logger:
+    """
+    Returns
+    -------
+    loggi.Logger
+        An 'app' logger.
+    """
     return loggi.getLogger("app", Pathier(__file__).parent / "logs")
 
 
 @app.route("/")
 def landing() -> str:
+    """
+    Handles primary page of website.
+
+    Returns
+    -------
+    str
+        The page content to display.
+    """
     code: str | None = request.args.get("code", None)
     state: str = request.args.get("state", "")
     if code is not None and OAuthProvider.state_exists(state):
@@ -46,9 +73,25 @@ def landing() -> str:
 
 @app.route("/authurl")
 def get_etsy_auth_url() -> str:
+    """
+    Generate a new OAuth instance and corresponding Authorization url.
+
+    Returns
+    -------
+    str
+        The authorization url.
+    """
     return OAuthProvider.get_auth_url()
 
 
 @app.route("/salesdata")
 def get_csv_data() -> Response:
+    """
+    Write database to csv.
+
+    Returns
+    -------
+    Response
+        The csv file.
+    """
     return send_file(EtsyDataService.write_data_to_csv())
