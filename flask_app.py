@@ -1,17 +1,14 @@
 import dotenv
 import loggi
-
-# etsy_python doesn't have any typing stub files
-from flask import Flask, request
+from flask import Flask, Response, request, send_file
 from pathier import Pathier
 
 import etsy
 import exceptions
+from data_writer import DataWriter
 from etsy import AuthenticatedClient, OAuthProvider
 
 app = Flask(__name__)
-
-# TODO Add route that triggers csv dump
 
 if not (Pathier(__file__).parent / ".env").exists():
     raise exceptions.MissingEnvException("Could not find '.env' file.")
@@ -50,3 +47,8 @@ def landing() -> str:
 @app.route("/authurl")
 def get_etsy_auth_url() -> str:
     return OAuthProvider.get_auth_url()
+
+
+@app.route("/salesdata")
+def get_csv_data() -> Response:
+    return send_file(DataWriter.write_to_csv())
