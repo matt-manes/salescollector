@@ -10,7 +10,7 @@ CREATE TABLE
         product_id INTEGER,
         receipt_id INTEGER,
         transaction_id INTEGER,
-        shop_id REFERENCES shops (shop_id) ON DELETE RESTRICT,
+        shop_id INTEGER REFERENCES shops (shop_id) ON DELETE RESTRICT,
         title TEXT,
         unit_price REAL,
         quantity INTEGER,

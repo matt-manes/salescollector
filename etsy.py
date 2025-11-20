@@ -89,7 +89,7 @@ class AuthenticatedClient:
         return cls(token_data)
 
     @cached_property
-    def shop_id(self) -> str:
+    def shop_id(self) -> int:
         user: UserResource = UserResource(self.client)
         try:
             # etsy_python mistyped resource objects to either return
@@ -101,7 +101,7 @@ class AuthenticatedClient:
             log_and_raise_api_error(f"Getting shop id failed: {e}")
         # type ignore b/c etsy_python mistyped `message` field as `str`
         # even though it's `dict[str, Any]` for any successful request that returns data
-        return response.message["shop_id"]  # type: ignore
+        return int(response.message["shop_id"])  # type: ignore
 
     def get_sales_data(self) -> list[dict[str, Any]]:
         receipts: ReceiptResource = ReceiptResource(self.client)
@@ -115,7 +115,7 @@ class AuthenticatedClient:
                 response: Response = cast(
                     Response,
                     receipts.get_shop_receipts(
-                        int(self.shop_id),
+                        self.shop_id,
                         limit=limit,
                         offset=offset,
                         was_paid=True,
@@ -137,5 +137,5 @@ class AuthenticatedClient:
     def pull_data(self) -> None:
         get_logger().info(f"Pulling sales data for shop '{self.shop_id}'.")
         data: list[dict[str, Any]] = self.get_sales_data()
-        EtsyDataService.save_data(self.shop_id, data)
+        EtsyDataService.save_transaction_data(self.shop_id, data)
         get_logger().info(f"Retrieved {len(data)} records for shop '{self.shop_id}'.")

@@ -8,9 +8,12 @@ from db import Rows, SCDatabased
 
 
 class EtsyDataService:
+    """
+    Handles processing/storing raw Etsy data and producing output in requested format.
+    """
 
     @staticmethod
-    def get_date_patterns() -> list[str]:
+    def _get_date_patterns() -> list[str]:
         """
         Returns a list of sql wildcard patterns for grouping transactions by month and year.
 
@@ -28,7 +31,20 @@ class EtsyDataService:
         return dates
 
     @staticmethod
-    def convert_date(date: str) -> str:
+    def _convert_date(date: str) -> str:
+        """
+        Convert the given date pattern to the requested format.
+
+        Parameters
+        ----------
+        date : str
+            A date pattern in the format 'YYYY-MM-%'.
+
+        Returns
+        -------
+        str
+            A date in the format 'MM/YY'.
+        """
         parts: list[str] = date.split("-")
         year: str = parts[0]
         month: str = parts[1]
@@ -36,8 +52,23 @@ class EtsyDataService:
 
     @staticmethod
     def _prep_transaction_data(
-        shop_id: str, data: list[dict[str, Any]]
+        shop_id: int, data: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
+        """
+        Convert data returned from Etsy's API to database schema compatible format.
+
+        Parameters
+        ----------
+        shop_id : int
+            The shop id the given data is for.
+        data : list[dict[str, Any]]
+            The raw transaction data taken from the Etsy API.
+
+        Returns
+        -------
+        list[dict[str, Any]]
+            The transaction data prepped for database storage.
+        """
         transactions: list[dict[str, Any]] = []
         for receipt in data:
             if receipt["seller_user_id"] == shop_id:
@@ -62,22 +93,38 @@ class EtsyDataService:
         return transactions
 
     @staticmethod
-    def save_data(shop_id: str, data: list[dict[str, Any]]) -> None:
+    def save_transaction_data(shop_id: int, data: list[dict[str, Any]]) -> None:
+        """
+        Save transaction data taken from the Etsy API to the database.
+
+        Parameters
+        ----------
+        shop_id : int
+            The shop id the given data is for.
+        data : list[dict[str, Any]]
+            The raw transaction data taken from the Etsy API response.
+        """
         data = EtsyDataService._prep_transaction_data(shop_id, data)
         with SCDatabased() as db:
             db.save_etsy_data(shop_id, data)
 
     @staticmethod
     def get_condensed_data() -> list[dict[str, Any]]:
+        """
+        Returns
+        -------
+        list[dict[str, Any]]
+            The data stored in the database in the condensed format requested by researcher.
+        """
         data: list[dict[str, Any]] = []
-        date_patterns: list[str] = EtsyDataService.get_date_patterns()
+        date_patterns: list[str] = EtsyDataService._get_date_patterns()
         with SCDatabased() as db:
             shops: Rows = db.select("shops", ["shop_id"])
             for i, shop in enumerate(shops, 1):
                 for date in date_patterns:
                     row: dict[str, Any] = {}
                     row["participant id"] = f"Artist_{i}"
-                    row["date"] = EtsyDataService.convert_date(date)
+                    row["date"] = EtsyDataService._convert_date(date)
                     sales: Rows = db.select(
                         "sales",
                         ["SUM(total_price) AS revenue", "SUM(quantity) AS sales"],
@@ -92,6 +139,14 @@ class EtsyDataService:
 
     @staticmethod
     def write_data_to_csv() -> Pathier:
+        """
+        Write data to a csv file.
+
+        Returns
+        -------
+        Pathier
+            The path to the csv file.
+        """
         data: list[dict[str, Any]] = EtsyDataService.get_condensed_data()
         output_path: Pathier = Pathier(__file__).parent / "etsy-sales.csv"
         if not data:
